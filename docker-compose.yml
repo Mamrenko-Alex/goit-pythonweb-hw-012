@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    container_name: contacts_postgres
+    environment:
+      POSTGRES_DB: contacts_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  contacts_api:
+    build: .
+    container_name: contacts_api
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/contacts_db
+    entrypoint:
+      ["./wait-for-it.sh", "db:5432", "--", "alembic", "upgrade", "head"]
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+
+volumes:
+  pgdata:
