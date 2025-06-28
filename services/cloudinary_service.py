@@ -16,6 +16,7 @@ cloudinary.config(
 
 
 def upload_avatar(file):
+    """Uploads an avatar image to Cloudinary and returns the secure URL."""
     result = cloudinary.uploader.upload(
         file, folder="avatars", overwrite=True, resource_type="image")
     return result.get("secure_url")

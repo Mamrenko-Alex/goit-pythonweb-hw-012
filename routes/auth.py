@@ -12,10 +12,12 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def get_password_hash(password: str) -> str:
+    """Хешує пароль користувача для зберігання в базі даних."""
     return pwd_context.hash(password)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Перевіряє, чи збігається введений пароль з хешованим паролем."""
     return pwd_context.verify(plain_password, hashed_password)
 
 
@@ -24,6 +26,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/signup", response_model=UserResponse, status_code=201)
 def signup(user: UserCreate, db: Session = Depends(get_db)):
+    """Реєстрація нового користувача."""
     existing_user = db.query(User).filter(User.email == user.email).first()
     if existing_user:
         raise HTTPException(status_code=409, detail="Користувач вже існує")
@@ -45,6 +48,7 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=Token)
 def login(user_data: UserLogin, db: Session = Depends(get_db)):
+    """Логін користувача та отримання токена доступу."""
     user = crud.get_user_by_email(db, user_data.email)
     if not user or not verify_password(user_data.password, user.password):
         raise HTTPException(status_code=401, detail="Невірна пошта або пароль")
@@ -58,6 +62,7 @@ def login(user_data: UserLogin, db: Session = Depends(get_db)):
 
 @router.get("/verify", status_code=200)
 def verify_email(token: str, db: Session = Depends(get_db)):
+    """Підтвердження email користувача за токеном."""
     email = decode_access_token(token)
     if email is None:
         raise HTTPException(status_code=400, detail="Невалідний токен")

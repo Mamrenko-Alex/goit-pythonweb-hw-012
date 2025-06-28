@@ -4,6 +4,7 @@ from database import Base
 
 
 class Contact(Base):
+    """Модель для зберігання контактів користувача."""
     __tablename__ = "contacts"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -18,6 +19,7 @@ class Contact(Base):
 
 
 class User(Base):
+    """Модель для зберігання користувачів."""
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)

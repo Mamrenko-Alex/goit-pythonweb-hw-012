@@ -8,6 +8,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
 def create_access_token(data: dict, expires_delta: timedelta = None):
+    """Створює JWT токен з даними користувача."""
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
@@ -16,6 +17,7 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
 
 
 def decode_access_token(token: str):
+    """Декодує JWT токен та повертає email користувача."""
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload.get("sub")

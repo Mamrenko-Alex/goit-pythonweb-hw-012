@@ -25,6 +25,7 @@ app.include_router(router)
 
 
 def get_db():
+    """Генерує сесію бази даних для використання в залежностях FastAPI."""
     db = SessionLocal()
     try:
         yield db
@@ -36,6 +37,7 @@ def get_db():
 def create_contact(contact: schemas.ContactCreate,
                    db: Session = Depends(get_db),
                    current_user: User = Depends(get_current_user)):
+    """Створює новий контакт для поточного користувача."""
     return crud.create_contact(db, contact, current_user.id)
 
 
@@ -43,6 +45,7 @@ def create_contact(contact: schemas.ContactCreate,
 def read_contact(contact_id: int,
                  db: Session = Depends(get_db),
                  current_user: User = Depends(get_current_user)):
+    """Отримує контакт за ID для поточного користувача."""
     contact = crud.get_contact_by_id(db, contact_id, current_user.id)
     if contact is None:
         raise HTTPException(status_code=404, detail="Контакт не знайдено")
@@ -53,6 +56,7 @@ def read_contact(contact_id: int,
 def update_contact(contact_id: int, contact: schemas.ContactUpdate,
                    db: Session = Depends(get_db),
                    current_user: User = Depends(get_current_user)):
+    """Оновлює контакт за ID для поточного користувача."""
     updated = crud.update_contact(db, contact_id, contact, current_user.id)
     if updated is None:
         raise HTTPException(status_code=404, detail="Контакт не знайдено")
@@ -63,6 +67,7 @@ def update_contact(contact_id: int, contact: schemas.ContactUpdate,
 def delete_contact(contact_id: int,
                    db: Session = Depends(get_db),
                    current_user: User = Depends(get_current_user)):
+    """Видаляє контакт за ID для поточного користувача."""
     deleted = crud.delete_contact(db, contact_id, current_user.id)
     if deleted is None:
         raise HTTPException(status_code=404, detail="Контакт не знайдено")
@@ -73,17 +78,20 @@ def delete_contact(contact_id: int,
 def search(query: str,
            db: Session = Depends(get_db),
            current_user: User = Depends(get_current_user)):
+    """Шукає контакти за іменем, прізвищем або email."""
     return crud.search_contacts(db, query, current_user.id)
 
 
 @app.get("/birthdays/", response_model=List[schemas.ContactResponse])
 def birthdays(db: Session = Depends(get_db),
               current_user: User = Depends(get_current_user)):
+    """Отримує контакти з днями народження, що наближаються протягом наступного тижня."""
     return crud.upcoming_birthdays(db, current_user.id)
 
 
 @app.get("/me", response_model=schemas.UserResponse)
 def read_current_user(current_user: User = Depends(get_current_user)):
+    """Отримує інформацію про поточного користувача."""
     return current_user
 
 
@@ -93,6 +101,7 @@ async def update_avatar(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """Оновлює аватар поточного користувача."""
     url = upload_avatar(await file.read())
     current_user.avatar_url = url
     db.commit()

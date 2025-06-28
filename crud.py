@@ -11,14 +11,17 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def get_contacts_for_user(db: Session, user_id: int, skip: int = 0, limit: int = 100):
+    """Отримує список контактів для користувача з пагінацією."""
     return db.query(Contact).filter(Contact.user_id == user_id).offset(skip).limit(limit).all()
 
 
 def get_contact_by_id(db: Session, contact_id: int, user_id: int):
+    """Отримує контакт за ID для конкретного користувача."""
     return db.query(Contact).filter(Contact.id == contact_id, Contact.user_id == user_id).first()
 
 
 def create_contact(db: Session, contact: ContactCreate, user_id: int):
+    """Створює новий контакт для користувача."""
     db_contact = Contact(
         **contact.dict(), created_at=datetime.utcnow(), user_id=user_id)
     db.add(db_contact)
@@ -28,6 +31,7 @@ def create_contact(db: Session, contact: ContactCreate, user_id: int):
 
 
 def update_contact(db: Session, contact_id: int, updated_data: ContactUpdate, user_id: int):
+    """Оновлює контакт за ID для конкретного користувача."""
     contact = get_contact_by_id(db, contact_id, user_id)
     if contact:
         updated_fields = updated_data.dict(exclude_unset=True)
@@ -39,6 +43,7 @@ def update_contact(db: Session, contact_id: int, updated_data: ContactUpdate, us
 
 
 def delete_contact(db: Session, contact_id: int, user_id: int):
+    """Видаляє контакт за ID для конкретного користувача."""
     contact = get_contact_by_id(db, contact_id, user_id)
     if contact:
         db.delete(contact)
@@ -47,6 +52,7 @@ def delete_contact(db: Session, contact_id: int, user_id: int):
 
 
 def upcoming_birthdays(db: Session, user_id: int):
+    """Отримує контакти з днями народження, що наближаються протягом наступного тижня."""
     today = date.today()
     next_week = today + timedelta(days=7)
     return db.query(Contact).filter(
@@ -56,6 +62,7 @@ def upcoming_birthdays(db: Session, user_id: int):
 
 
 def search_contacts(db: Session, query: str, user_id: int):
+    """Шукає контакти за іменем, прізвищем або email."""
     return db.query(Contact).filter(
         Contact.user_id == user_id,
         (
@@ -67,10 +74,12 @@ def search_contacts(db: Session, query: str, user_id: int):
 
 
 def get_user_by_email(db: Session, email: str):
+    """Отримує користувача за email."""
     return db.query(User).filter(User.email == email).first()
 
 
 def create_user(db: Session, user: UserCreate):
+    """Створює нового користувача з хешуванням пароля."""
     existing = get_user_by_email(db, user.email)
     if existing:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
