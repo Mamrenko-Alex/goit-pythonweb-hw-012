@@ -11,7 +11,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from services.cloudinary_service import upload_avatar
 
 
-Base.metadata.create_all(bind=engine)
+if __name__ == "__main__":
+    Base.metadata.create_all(bind=engine)
+
 
 app = FastAPI(title="Контактна Книга API")
 app.add_middleware(
