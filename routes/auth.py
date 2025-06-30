@@ -1,12 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from models import User
-from schemas import UserCreate, UserResponse, Token, UserLogin
+from schemas import UserCreate, UserResponse, Token, UserLogin, PasswordResetRequest, PasswordResetConfirm
 from database import get_db
 from passlib.context import CryptContext
 from jwt_utils import create_access_token, decode_access_token
-from services.email_service import send_email_for_verification
+from services.email_service import send_email_for_verification, send_password_reset_email
 import crud
+from redis_client import redis_client
+import json
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -38,11 +40,10 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user)
 
-    # Створюємо токен для підтвердження
     token = create_access_token({"sub": user.email})
     verify_link = f"http://localhost:8000/auth/verify?token={token}"
 
-    # send_email_for_verification(user.email, verify_link)
+    send_email_for_verification(user.email, verify_link)
     return user
 
 
@@ -56,7 +57,13 @@ def login(user_data: UserLogin, db: Session = Depends(get_db)):
     if not user.is_verified:
         raise HTTPException(status_code=403, detail="Email не підтверджено")
 
-    token = create_access_token(data={"sub": user.email})
+    token = create_access_token(data={"sub": user.id})
+
+    from schemas import UserResponse
+    user_data = UserResponse.model_validate(user).model_dump()
+    redis_client.setex(f"user:{user.id}", 3600,
+                       json.dumps(user_data))  # TTL = 1 год
+
     return {"access_token": token, "token_type": "bearer"}
 
 
@@ -77,3 +84,34 @@ def verify_email(token: str, db: Session = Depends(get_db)):
     user.is_verified = True
     db.commit()
     return {"message": "Email підтверджено успішно ✅"}
+
+
+@router.post("/forgot-password")
+def forgot_password(data: PasswordResetRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == data.email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Користувача не знайдено")
+
+    token = create_access_token(
+        {"sub": user.email}, expires_delta=3600)  # на 1 годину
+    reset_link = f"http://localhost:8000/auth/reset-password?token={token}"
+    send_password_reset_email(user.email, reset_link)
+
+    return {"message": "Інструкція для скидання пароля надіслана на email"}
+
+
+@router.post("/reset-password")
+def reset_password(data: PasswordResetConfirm, db: Session = Depends(get_db)):
+    email = decode_access_token(data.token)
+    if not email:
+        raise HTTPException(
+            status_code=400, detail="Невалідний або прострочений токен")
+
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Користувача не знайдено")
+
+    user.password = get_password_hash(data.new_password)
+    db.commit()
+
+    return {"message": "Пароль змінено успішно ✅"}
