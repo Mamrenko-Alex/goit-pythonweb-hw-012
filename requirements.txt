@@ -11,3 +11,6 @@ python-dotenv
 cloudinary
 slowapi
 email-validator
+pytest 
+pytest-cov 
+httpx

@@ -42,7 +42,7 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
     token = create_access_token({"sub": user.email})
     verify_link = f"http://localhost:8000/auth/verify?token={token}"
 
-    send_email_for_verification(user.email, verify_link)
+    # send_email_for_verification(user.email, verify_link)
     return user
 
 

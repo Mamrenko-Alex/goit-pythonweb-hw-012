@@ -16,10 +16,10 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     return encoded_jwt
 
 
-def decode_access_token(token: str):
+def decode_access_token(token: str, secret: str = SECRET_KEY):
     """Декодує JWT токен та повертає email користувача."""
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, secret, algorithms=[ALGORITHM])
         return payload.get("sub")
     except JWTError:
         return None

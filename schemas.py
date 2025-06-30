@@ -32,7 +32,7 @@ class ContactResponse(ContactBase):
 
     class Config:
         """Конфігурація для Pydantic моделей."""
-        orm_mode = True
+        from_attributes = True
 
 
 class UserCreate(BaseModel):
@@ -51,7 +51,7 @@ class UserResponse(BaseModel):
     avatar_url: str | None = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class Token(BaseModel):
