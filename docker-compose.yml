@@ -20,8 +20,8 @@ services:
       - db
     environment:
       DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/contacts_db
-    entrypoint:
-      ["./wait-for-it.sh", "db:5432", "--", "alembic", "upgrade", "head"]
+    entrypoint: ["./wait-for-it.sh", "db:5432", "--"]
+    command: bash -c "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"
     volumes:
       - .:/app
     ports:
