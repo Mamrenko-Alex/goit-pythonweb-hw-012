@@ -1,6 +1,12 @@
-from sqlalchemy import ForeignKey, Column, Integer, String, Date, Boolean
+from sqlalchemy import ForeignKey, Column, Integer, String, Date, Boolean, Enum
 from sqlalchemy.orm import relationship
 from database import Base
+import enum
+
+
+class UserRole(enum.Enum):
+    user = "user"
+    admin = "admin"
 
 
 class Contact(Base):
@@ -25,6 +31,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)
-    password = Column(String)  # зберігаємо хеш
+    password = Column(String)
     is_verified = Column(Boolean, default=False)
     avatar_url = Column(String, nullable=True)
+    role = Column(Enum(UserRole), default=UserRole.user)

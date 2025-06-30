@@ -1,13 +1,11 @@
+from ..database import Base, SQLALCHEMY_DATABASE_URL
+from alembic import context
+from sqlalchemy import pool
+from sqlalchemy import engine_from_config
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
 
-from alembic import context
-
-from database import Base
-
-from database import SQLALCHEMY_DATABASE_URL
+print("SQLALCHEMY_DATABASE_URL:", repr(SQLALCHEMY_DATABASE_URL))
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
